@@ -1,41 +1,55 @@
 #include <stdio.h>
 #include <string.h>
 #include <locale.h>
+#include <stdlib.h>
 #include "dataTypes.h"
 #include "files.h"
 #include "utils.h"
 
-int main(){
-  setlocale(LC_ALL, "");
+
+int iniciar(){
   FILE *clientes;
   Cliente cliente;
-  char nome;
 
+  int *clientArray, tamanho = 0;
+
+  char nome[] = "Lucas José do nascimento FErreira";
+
+  clientes = abrirArquivo("data/Clientes.dat");
+
+  setlocale(LC_ALL, "Portuguese_Brasil");
+  setlocale (LC_CTYPE, "pt_BR.UTF-8");
+  printf("Bem vindo ao programa de Gerenciamento de farmacias!");
   
-  for (int i = 0; i < 4; i++){
-    clientes = abrirArquivo("data/Clientes.dat");
-    cliente.id = getNewUniqueId(clientes, sizeof(Cliente));
-    strcpy(cliente.nome, "Lucas");
+  for(int i = 0; i < 4; i++){
+    cliente.id = getNewIdCliente(clientes);
+    strcpy(cliente.nome, "Tais");
+    strcpy(cliente.cpf, "12758371669");
     strcpy(cliente.email, "ljnferreira@gmail.com");
     strcpy(cliente.telefone, "(32)99986-1427");
-    strcpy(cliente.cpf, "12758371669");
-    gravarRegistroFinalArquivoClientes(&cliente, clientes);
-    fecharArquivo(clientes);
+
+    gravarRegistroFinalArquivo(&cliente, clientes, sizeof(Cliente));
   }
-  clientes = abrirArquivo("data/Clientes.dat");
-  int *resultados;
-  resultados = findClientesByName(clientes,"Luc");
-  if(resultados){
-    printf("O tamanho do vetor é: %ld", sizeof resultados[0]);
+
+  clientArray = findClientesByName(clientes, "Ta", &tamanho);
+
+  if(tamanho){
+    for (int i =0 ; i< tamanho; i++) {
+      lerRegistroEmArquivo(&cliente, clientes, clientArray[i]);
+      printf("\nposição %d° caso: %d, nome do cliente %s, id: %ld", i + 1, clientArray[i], cliente.nome, cliente.id);
+    }
   }
-  fseek(clientes, 0, SEEK_END);
-  printf("Ftell: %ld\t sizeof: %ld\t registros: %ld\n", ftell(clientes), sizeof(Cliente), ftell(clientes)/sizeof(Cliente));
-  for(int i = 0; i < ftell(clientes)/sizeof cliente; i++){
-    lerRegistroEmArquivo(&cliente, clientes, i);
-    printf("Id: %ld \nNome: %s \nEmail: %s\nTelefone: %s\n\n",
-            cliente.id, cliente.nome, cliente.email, cliente.telefone);
-  }
-  
+
+  padronizaString(nome);
+
+  printf("\n\n%s", nome);
+
+  //free(clientArray);
+
   fecharArquivo(clientes);
   return 0;
+}
+
+int main(){
+  return iniciar();
 }

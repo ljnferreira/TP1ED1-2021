@@ -1,3 +1,6 @@
+#ifndef _DATA_TYPES_H_
+#define _DATA_TYPES_H_
+
 typedef struct {
   unsigned long id;
   char nome[100];
@@ -66,3 +69,5 @@ typedef struct{
   char data[11];
   float valor;
 }HistoricoPreço;
+
+#endif

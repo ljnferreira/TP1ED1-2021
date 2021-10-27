@@ -7,7 +7,7 @@ int *alocaVetorInteiros(int tamanho){
 }
 
 int *realocaVetorInteiros(int *vetor, int *tamanho, int acrescimo){
-  vetor = (int*)malloc(sizeof(int)* (*tamanho + acrescimo));
+  vetor = (int*)realloc( vetor,sizeof(int)* (*tamanho + acrescimo));
   *tamanho += acrescimo;
   return vetor;
 }

@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -208,16 +209,62 @@ int campovazio(char *nome){
  * convertendo tbm as letras minusculas em maiusculas.
 */
 void padronizaString(char *texto){
-  int tamanho = strlen(texto);
-  char caracterAcentuado[] =    "áàãâéèẽêíìĩîóòõôúùũûçÁÀÃÂÉÈẼÊÍÌĨÎÓÒÕÔÚÙÛŨÇ";
-  char caracterNaoAcentuado[] = "aaaaeeeeiiiioooouuuucAAAAEEEEIIIIOOOOUUUUC"; 
+  int tamanho = strlen(texto), caractere;
+  char aux;
+
+  //percorre toda a string convertendo para caixa alta e removendo acentuação
   for (int i = 0; i < tamanho; i++){
-    for (int k = 0; k < strlen(caracterNaoAcentuado); k++){
-      if(texto[i] == caracterAcentuado[k+1] || texto[i] == caracterAcentuado[k*2]){ 
-        texto[i] = caracterNaoAcentuado[k];
-      }
+    caractere = (int) texto[i];
+
+    if (caractere == -61 || caractere == -67 || caractere == -31 || caractere == -59) {
+      texto[i] = texto[i+1];
+        texto[i+1] = ' ';
+        i--;
+    }
+    if(caractere == -95 || caractere == -96 || caractere == -93 || caractere == -94 ||
+      caractere == -127 || caractere == -128 || caractere == -125 ||caractere == -126){
+      texto[i] = 'a';
+    }
+
+    if(caractere == -87 || caractere == -88 || caractere == -86 || caractere == -119 || 
+      caractere == -118 || caractere == -120){
+      texto[i] = 'e';
+    }
+
+    if(caractere == -83 || caractere == -84 || caractere == -60 || caractere == -82 ||
+      caractere == -115 || caractere == -116){
+      texto[i] = 'i';
+    }
+
+    if(caractere == -77 || caractere == -78 || caractere == -75 || caractere == -76 ||
+      caractere == -107 || caractere == -108 || caractere == -109 ||caractere == -110){
+      texto[i] = 'o';
+    }
+
+    if(caractere == -70 || caractere == -71 || caractere == -102 || caractere == -103 ){
+      texto[i] = 'u';
+    }
+
+    if(caractere == -89 || caractere == -121){
+      texto[i] = 'c';
     }
     texto[i] = toupper(texto[i]); //converte em letras maiusculas
+  }
+
+  tamanho = strlen(texto);
+
+  //removendo espaços em branco resultantes da remoção da acentuação
+  for (int i = 0; i < tamanho ; i++) {
+    if(texto[i] != '\0'){
+      if(texto[i] == ' ' && texto[i+1] == ' '){
+        for (int k = i + 1; k < tamanho; k++){
+          aux = texto[k];
+          texto[k] = texto[k+1];
+          texto[k+1] = aux;
+        }
+      }
+    }
+    
   }
   
 }
