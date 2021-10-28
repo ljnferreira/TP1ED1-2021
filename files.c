@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include "files.h"
 #include "dataTypes.h"
 #include "memoryManagement.h"
 
@@ -35,13 +36,10 @@ void lerRegistroEmArquivo(void *data, FILE *file, int position){
 }
 
 unsigned long getNewUniqueId(FILE *file, unsigned long sizeOfRegister){
+  unsigned long int tamanho; 
   fseek(file, 0, SEEK_END);
-  return (ftell(file) / sizeOfRegister) + 1; 
-}
-
-unsigned long getNewIdCliente(FILE *file){
-    fseek(file, 0, SEEK_END);
-    return (ftell(file)/sizeof(Cliente) + 1);
+  tamanho = ftell(file);
+  return (tamanho / sizeOfRegister) + 1; 
 }
 
 int findClienteById(FILE *file, unsigned long id){
@@ -72,7 +70,8 @@ int findClienteByCPF(FILE *file, char *cpf){
 }
 
 /**
- * Recebe como parametro o arquivo e o texto a ser procurado
+ * Recebe como parametro o arquivo e o texto a ser procurado, além de um
+ * ponteiro para armazenar o tamanho do vetor
  * e retorna um array de inteiros com a posição de cada ocorrencia
  * do texto entre os registros. Após uso do array deve-se usar
  * a função free da biblioteca stdlib para liberar a memoria alocada.
@@ -130,6 +129,14 @@ int findVendedorByCPF(FILE *file, char *cpf){
   }
   return posicao;
 }
+
+/**
+ * Recebe como parametro o arquivo e o texto a ser procurado, além de um
+ * ponteiro para armazenar o tamanho do vetor
+ * e retorna um array de inteiros com a posição de cada ocorrencia
+ * do texto entre os registros. Após uso do array deve-se usar
+ * a função free da biblioteca stdlib para liberar a memoria alocada.
+*/
 int *findVendedoresByName(FILE *file, char *name, int *tamanho){
   Vendedor vendedor;
   int tamanhoArquivo, posicao = -1, tamanhoVetor = 1, qtdRegistros = 0;
@@ -183,7 +190,15 @@ int findFornecedorByCNPJ(FILE *file, char *cnpj){
   }
   return posicao;
 }
-int *findFornecedoresByName(FILE *file, char *name, *tamanho){
+
+/**
+ * Recebe como parametro o arquivo e o texto a ser procurado, além de um
+ * ponteiro para armazenar o tamanho do vetor
+ * e retorna um array de inteiros com a posição de cada ocorrencia
+ * do texto entre os registros. Após uso do array deve-se usar
+ * a função free da biblioteca stdlib para liberar a memoria alocada.
+*/
+int *findFornecedoresByName(FILE *file, char *name, int *tamanho){
   Fornecedor fornecedor;
   int tamanhoArquivo, posicao = -1, tamanhoVetor = 1, qtdRegistros = 0;
   int *vetor = alocaVetorInteiros(tamanhoVetor);

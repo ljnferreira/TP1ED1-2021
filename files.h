@@ -12,7 +12,6 @@ int gravarRegistroEmArquivo(void *data, FILE *file, int posicao,unsigned long si
 void lerRegistroEmArquivo(void *data, FILE *file, int position);
 
 unsigned long getNewUniqueId(FILE *file, unsigned long sizeOfRegister);
-unsigned long getNewIdCliente(FILE *file);
 
 int findClienteById(FILE *file, unsigned long id);
 int findClienteByCPF(FILE *file, char *cpf);
