@@ -14,6 +14,7 @@ void crudCliente(){
     printf("3 - Alterar Cliente\n");
     printf("4 - Listar Clientes\n");
     printf("0 - Sair \n");
+    scanf("%d", &opcao);
     if(opcao > 0 && opcao < 5)
     switch (opcao) {
       case 1 :
@@ -43,6 +44,7 @@ void crudVendedor(){
     printf("3 - Alterar Vendedor\n");
     printf("4 - Listar Vendedores\n");
     printf("0 - Sair \n");
+    scanf("%d", &opcao);
     if(opcao > 0 && opcao < 5)
     switch (opcao) {
       case 1 :
@@ -72,6 +74,7 @@ void crudFornecedor(){
     printf("3 - Alterar Fornecedor\n");
     printf("4 - Listar Fornecedores\n");
     printf("0 - Sair \n");
+    scanf("%d", &opcao);
     if(opcao > 0 && opcao < 5)
     switch (opcao) {
       case 1 :
@@ -143,4 +146,13 @@ void menuPrincipal(){
 void limparTela(){
   system("cls||clear");
 }
+
+void pause(){
+  if(PAUSE)
+    system("read -p \"Pressione enter para sair\" saindo");
+  else
+    system("pause");
+    
+}
+
 void creditos(){}
