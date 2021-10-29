@@ -153,7 +153,7 @@ int validaData(char *data){
 }
   
 /**
- * Função que verifica se um email é valido
+ * Função que verifica se um email é valido, retornando 1 caso seja e 0 caso contrario
 */
 int validaEmail(char *email){
   
@@ -185,6 +185,7 @@ int validaEmail(char *email){
   // verifica se o ponto esta presente no final
   return !(ponto >= (strlen(email) - 1));
 }
+
 /**
  * Essa função recebe como entrada uma string, removendo
  * o caratere de escape \n de seu final.

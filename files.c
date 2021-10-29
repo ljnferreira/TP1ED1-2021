@@ -18,7 +18,7 @@ FILE *abrirArquivo(char location[]){
   
 }
 int fecharArquivo(FILE *file){
-  fclose(file);
+  return fclose(file);
 }
 
 int gravarRegistroFinalArquivo(void *data, FILE *file, unsigned long size){
@@ -164,6 +164,20 @@ int *findVendedoresByName(FILE *file, char *name, int *tamanho){
     return vetor;
 }
 
+int isEmailCadastradoVendedor(FILE *file, char *email){
+  Vendedor vendedor;
+  int tamanho;
+  fseek(file, 0, SEEK_END);
+  tamanho =  ftell(file) / sizeof(Vendedor);
+  for (int i = 0; i < tamanho; i++) {
+    fread(&vendedor, sizeof(Vendedor), 1, file);
+    if (strcmp(vendedor.email, email)) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 int findFornecedorById(FILE *file, unsigned long id){
   Fornecedor fornecedor;
   int tamanho, posicao = -1;
@@ -223,6 +237,21 @@ int *findFornecedoresByName(FILE *file, char *name, int *tamanho){
     return NULL;
   }else
     return vetor;
+}
+
+int isNomeFornecedorCadastrado(FILE *file, char * nome){
+  Fornecedor fornecedor;
+  int tamanho;
+  
+  fseek(file, 0, SEEK_END);
+  tamanho = ftell(file)/sizeof(Fornecedor);
+  for (int i = 0; i < tamanho; i++) {
+    fread(&fornecedor, sizeof(Fornecedor), 1, file);
+    if (strcmp(fornecedor.nome, nome)) {
+      return 1;
+    }
+  }
+  return 0;
 }
 
 int findNotaFiscalById(FILE *file, unsigned long id){
