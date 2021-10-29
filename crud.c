@@ -204,7 +204,7 @@ void cadastrarVendedor(){
 
       gravarRegistroFinalArquivo(&vendedor, vendedores, sizeof(Vendedor));
       
-      printf("Digite 0 para sair ou 1 para cadastrar um novo cliente: ");
+      printf("Digite 0 para sair ou 1 para cadastrar um novo vendedor: ");
       scanf("%d", &opcao);
 
     }while (opcao != 0);
@@ -309,7 +309,7 @@ void cadastrarFornecedor(){
 
       gravarRegistroFinalArquivo(&fornecedor, fornecedores, sizeof(Fornecedor));
       
-      printf("Digite 0 para sair ou 1 para cadastrar um novo Fornecedor: ");
+      printf("Digite 0 para sair ou 1 para cadastrar um novo fornecedor: ");
       scanf("%d", &opcao);
 
     }while (opcao != 0);
