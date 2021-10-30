@@ -68,6 +68,6 @@ typedef struct{
   unsigned long idProduto;
   char data[11];
   float valor;
-}HistoricoPreço;
+}HistoricoPreco;
 
 #endif

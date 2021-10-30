@@ -136,6 +136,7 @@ void menuPrincipal(){
         case 6:
           break;
         case 7:
+          atualizarPreco();
           break;
         case 8:
           break;

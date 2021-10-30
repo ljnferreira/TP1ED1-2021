@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "crud.h"
 #include "dataTypes.h"
 #include "userInteraction.h"
@@ -767,5 +768,76 @@ void cadastrarProduto(){
     }while (opcao != 1);
 
     fecharArquivo(produtos);
+  }
+}
+
+void atualizarPreco(){
+  FILE *historicoPrecos;
+  FILE *produtos;
+  Produto produto;
+  HistoricoPreco historicoPreco;
+  int valorAjuste = 0, opcao, contador = 0;
+  float porcentagem = 0;
+  unsigned long id;
+
+  historicoPrecos = abrirArquivo(HISTORICO_PRECOS);
+  produtos = abrirArquivo(PRODUTO);
+  if(historicoPrecos && produtos){
+
+    do{
+      printf("Qual o valor (em porcentagem) do ajuste? (valor entre -100 e 100 ");
+      scanf("%d", &valorAjuste);
+    }while(valorAjuste < -100 && valorAjuste > 100);
+    porcentagem = (1 + (float) valorAjuste/100);
+    do{
+      printf("O ajuste é para apenas um produto ou para todos? \n1 - somente um \n2 -todos \n opção: ");
+      scanf("%d", &opcao);
+    }while(opcao < 1 || opcao > 2);
+    if(opcao ==1){
+      printf("\t\t\tListagem de produtos: \n\n");
+      printf("|\tNome \t\t|\t id \t|\n");
+      fseek(produtos, 0, SEEK_SET);
+      while(fread(&produto, sizeof(Produto), 1, produtos)){
+        printf("|\t%s \t|\t %ld \t|\n", produto.nome, produto.id);
+      }
+      fseek(produtos, 0, SEEK_SET);
+      printf("\n\n");
+      printf("Digite o id do produto: ");
+      scanf("%ld",&id);
+      fseek(produtos, 0, SEEK_SET);
+      while(fread(&produto, sizeof(Produto), 1, produtos)){
+        if(produto.id == id){
+          produto.precoUnitario = produto.precoUnitario * porcentagem;
+          historicoPreco.idProduto = produto.id;
+          strcpy(historicoPreco.data , __DATE__);
+          historicoPreco.valor = produto.precoUnitario;
+          gravarRegistroFinalArquivo(&historicoPreco, historicoPrecos, sizeof(HistoricoPreco));
+          gravarRegistroEmArquivo(&produto, produtos, contador, sizeof(Produto));
+        }
+        contador ++;
+      }
+    }else{
+      contador = 0;
+      fseek(produtos, 0, SEEK_SET);
+      while(fread(&produto, sizeof(Produto), 1, produtos)){
+        produto.precoUnitario = produto.precoUnitario * porcentagem; 
+        historicoPreco.idProduto = produto.id;
+        strcpy(historicoPreco.data , __DATE__);
+        historicoPreco.valor = produto.precoUnitario;
+        gravarRegistroFinalArquivo(&historicoPreco, historicoPrecos, sizeof(HistoricoPreco));
+        gravarRegistroEmArquivo(&produto, produtos, contador, sizeof(Produto)); 
+        contador ++;
+      }
+    }
+
+    printf("\t\t\tListagem de produtos com novos preços: \n\n");
+    printf("|\t\tNome \t\t|\t id \t| \t preço unitário |\n");
+    fseek(produtos, 0, SEEK_SET);
+    while(fread(&produto, sizeof(Produto), 1, produtos)){
+      printf("|\t%s \t|\t %ld \t|\t %.2f|\n", produto.nome, produto.id, produto.precoUnitario);
+    }
+    pause();
+    fecharArquivo(produtos);
+    fecharArquivo(historicoPrecos);
   }
 }

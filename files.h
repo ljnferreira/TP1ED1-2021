@@ -12,6 +12,8 @@
 #define ITEM_NOTA_FISCAL "data/ItensNotaFiscal.dat"
 #define NOTA_COMPRA "data/NotasCompra.dat"
 #define ITEM_NOTA_COMPRA "data/NotasFiscais.dat"
+#define HISTORICO_PRECOS "data/HistoricoPrecos.dat"
+ 
 
 FILE *abrirArquivo(char location[]);
 int fecharArquivo(FILE *file);

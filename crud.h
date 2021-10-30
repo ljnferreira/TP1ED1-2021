@@ -64,4 +64,7 @@ void cadastrarProduto();
 void alterarProduto();
 void consultarProduto();
 
+void atualizarPreco();
+
+
 #endif 
