@@ -214,6 +214,7 @@ void padronizaString(char *texto){
   int tamanho = strlen(texto), caractere;
   char aux;
 
+  retiraEnter(texto);
   //percorre toda a string convertendo para caixa alta e removendo acentuação
   for (int i = 0; i < tamanho; i++){
     caractere = (int) texto[i];

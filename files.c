@@ -30,9 +30,9 @@ int gravarRegistroEmArquivo(void *data, FILE *file, int posicao, unsigned long s
   fseek(file, posicao * size, SEEK_SET);
   return fwrite(data, size, 1, file);
 }
-void lerRegistroEmArquivo(void *data, FILE *file, int position){
-  fseek(file, position * sizeof data, SEEK_SET);
-  fread(data, sizeof(data), 1, file);
+void lerRegistroEmArquivo(void *data, FILE *file, int position, unsigned int size){
+  fseek(file, position * size, SEEK_SET);
+  fread(data, size, 1, file);
 }
 
 unsigned long getNewUniqueId(FILE *file, unsigned long sizeOfRegister){
@@ -47,24 +47,26 @@ int findClienteById(FILE *file, unsigned long id){
   int tamanho, posicao = -1;
   fseek(file, 0, SEEK_END);
   tamanho = ftell(file) / sizeof (Cliente);
+  fseek(file, 0, SEEK_SET);
   for(int i = 0; i < tamanho; i++){
     fread(&cliente, sizeof(Cliente), 1, file);
     if(cliente.id == id){
       posicao = i;
+      return posicao;
     }
   }
   return posicao;
 }
 int findClienteByCPF(FILE *file, char *cpf){
   Cliente cliente;
-  int tamanho, posicao = -1;
-  fseek(file, 0, SEEK_END);
-  tamanho = ftell(file) / sizeof (Cliente);
-  for(int i = 0; i < tamanho; i++){
-    fread(&cliente, sizeof(Cliente), 1, file);
+  int posicao = -1, contador = 0;
+  fseek(file, 0, SEEK_SET);
+  while(fread(&cliente, sizeof(Cliente), 1, file)){
     if(!strcmp(cliente.cpf, cpf)){
-      posicao = i;
+      posicao = contador;
+      return posicao;
     }
+    contador ++;
   }
   return posicao;
 }
@@ -105,27 +107,26 @@ int *findClientesByName(FILE *file, char *name, int *tamanho){
 
 int findVendedorById(FILE *file, unsigned long id){
   Vendedor vendedor;
-  int tamanho, posicao = -1;
-  fseek(file, 0, SEEK_END);
-  tamanho = ftell(file) / sizeof (Vendedor);
-  for(int i = 0; i < tamanho; i++){
-    fread(&vendedor, sizeof(Vendedor), 1, file);
+  int contador = 0, posicao = -1;
+  fseek(file, 0, SEEK_SET);
+  while(fread(&vendedor, sizeof(Vendedor), 1, file)){
     if(vendedor.id == id){
-      posicao = i;
+      posicao = contador;
+      return posicao;
     }
   }
   return posicao;
 }
 int findVendedorByCPF(FILE *file, char *cpf){
   Vendedor vendedor;
-  int tamanho, posicao = -1;
-  fseek(file, 0, SEEK_END);
-  tamanho = ftell(file) / sizeof (Vendedor);
-  for(int i = 0; i < tamanho; i++){
-    fread(&vendedor, sizeof(Vendedor), 1, file);
-    if(!strcmp(vendedor.cpf,cpf)){
-      posicao = i;
+  int contador = 0, posicao = -1;
+  fseek(file, 0, SEEK_SET);
+  while(fread(&vendedor, sizeof(Vendedor), 1, file)){
+    if(!strcmp(vendedor.cpf, cpf)){
+      posicao = contador;
+      return posicao;
     }
+    contador++;
   }
   return posicao;
 }
@@ -180,27 +181,27 @@ int isEmailCadastradoVendedor(FILE *file, char *email){
 
 int findFornecedorById(FILE *file, unsigned long id){
   Fornecedor fornecedor;
-  int tamanho, posicao = -1;
-  fseek(file, 0, SEEK_END);
-  tamanho = ftell(file) / sizeof (Fornecedor);
-  for(int i = 0; i < tamanho; i++){
-    fread(&fornecedor, sizeof(Fornecedor), 1, file);
-    if(fornecedor.id == id){
-      posicao = i;
+  int contador = 0, posicao = -1;
+  fseek(file, 0, SEEK_SET);
+  while(fread(&fornecedor, sizeof(Fornecedor), 1, file)){
+    if(fornecedor.id ==id){
+      posicao = contador;
+      return posicao;
     }
+    contador++;
   }
   return posicao;
 }
 int findFornecedorByCNPJ(FILE *file, char *cnpj){
   Fornecedor fornecedor;
-  int tamanho, posicao = -1;
-  fseek(file, 0, SEEK_END);
-  tamanho = ftell(file) / sizeof (Fornecedor);
-  for(int i = 0; i < tamanho; i++){
-    fread(&fornecedor, sizeof(Fornecedor), 1, file);
+  int contador = 0, posicao = -1;
+  fseek(file, 0, SEEK_SET);
+  while(fread(&fornecedor, sizeof(Fornecedor), 1, file)){
     if(!strcmp(fornecedor.CNPJ, cnpj)){
-      posicao = i;
+      posicao = contador;
+      return posicao;
     }
+    contador++;
   }
   return posicao;
 }
@@ -212,42 +213,25 @@ int findFornecedorByCNPJ(FILE *file, char *cnpj){
  * do texto entre os registros. Após uso do array deve-se usar
  * a função free da biblioteca stdlib para liberar a memoria alocada.
 */
-int *findFornecedoresByName(FILE *file, char *name, int *tamanho){
+int findFornecedorByName(FILE *file, char *name){
   Fornecedor fornecedor;
-  int tamanhoArquivo, posicao = -1, tamanhoVetor = 1, qtdRegistros = 0;
-  int *vetor = alocaVetorInteiros(tamanhoVetor);
-  fseek(file, 0, SEEK_END);
-  tamanhoArquivo = ftell(file) / sizeof(Fornecedor);
+  int posicao = -1, contador = 0;
   fseek(file, 0, SEEK_SET);
-  for(int i = 0; i < tamanhoArquivo; i++){
-    fread(&fornecedor, sizeof(Fornecedor), 1, file);
+  while(fread(&fornecedor, sizeof(Fornecedor), 1, file)){
     if(strstr(fornecedor.nome, name)){
-      if(qtdRegistros == 0){
-        vetor[qtdRegistros] = i;
-        qtdRegistros++;
-      }else{
-        vetor = realocaVetorInteiros(vetor, &tamanhoVetor, 1);
-        vetor[qtdRegistros] = i;
-        qtdRegistros ++;
-      }
+      posicao = contador;
+      return contador;
     }
-  }// percorre todo o arquivo
-  *tamanho = qtdRegistros;
-  if(qtdRegistros == 0){
-    return NULL;
-  }else
-    return vetor;
+    contador ++;
+  }
+  return posicao;
 }
 
 int isNomeFornecedorCadastrado(FILE *file, char * nome){
   Fornecedor fornecedor;
-  int tamanho;
-  
-  fseek(file, 0, SEEK_END);
-  tamanho = ftell(file)/sizeof(Fornecedor);
-  for (int i = 0; i < tamanho; i++) {
-    fread(&fornecedor, sizeof(Fornecedor), 1, file);
-    if (strcmp(fornecedor.nome, nome)) {
+  fseek(file, 0, SEEK_SET);
+  while(fread(&fornecedor, sizeof(Fornecedor), 1, file)){
+    if(!strcmp(fornecedor.nome, nome)){
       return 1;
     }
   }

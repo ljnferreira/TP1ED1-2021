@@ -48,6 +48,7 @@ void cadastrarCliente(){
       do {
         printf("Digite o telefone (formato: (xx)xxxxx-xxxx ) do cliente: ");
         setbuf(stdin, NULL);
+        setbuf(stdin, NULL);
         fgets(cliente.telefone, 15, stdin);
         setbuf(stdin, NULL);
       }while (!campovazio(cliente.telefone));
@@ -69,58 +70,150 @@ void cadastrarCliente(){
 void consultarCliente(){
   FILE *clientes;
   Cliente cliente;
-  int tamanho, posicao, opcao;
+  int tamanho = 0, *vetor, posicao, opcao;
+  unsigned long id;
+  char cpf[12], prefixo[100];
 
-  limparTela();
-  do {
-    printf("Escolha uma opção de acordo com o menu abaixo:\n");
-    printf("1 - Consulta por CPF\n");
-    printf("2 - Consulta por ID\n");
-    printf("3 - Consulta por prefixo do nome\n");
-    printf("0 - Sair\n");
-    scanf("%d", &opcao);
+  clientes = abrirArquivo(CLIENTE);
 
-    switch (opcao) {
-      case 1:
-        printf("Digite o CPF do cliente: ");
-        setbuf(stdin, NULL);
-        fgets(cliente.cpf, 12, clientes);
-        setbuf(stdin, NULL);
-        if(validaCPF(cliente.cpf)){
-          posicao = findClienteByCPF(clientes, cliente.cpf);
-          if(posicao != -1){
-            lerRegistroEmArquivo(&cliente, clientes, posicao);
-            printf("\nId: %ld \nNome: %s \nTelefone: %s \nEmail : %s \nCPF: %s\n\n",
-              cliente.id, cliente.nome, cliente.telefone, cliente.email, cliente.cpf);
+  if (clientes) {
+    limparTela();
+    do {
+      printf("Escolha uma opção de acordo com o menu abaixo:\n");
+      printf("1 - Consulta por CPF\n");
+      printf("2 - Consulta por ID\n");
+      printf("3 - Consulta por prefixo do nome\n");
+      printf("0 - Sair\n");
+      scanf("%d", &opcao);
+
+      switch (opcao) {
+        case 1:
+          printf("Digite o CPF do cliente: ");
+          setbuf(stdin, NULL);
+          fgets(cpf, 12, stdin);
+          setbuf(stdin, NULL);
+          if(validaCPF(cpf)){
+            posicao = findClienteByCPF(clientes, cpf);
           }else{
-            printf("CPF não cadastrado!");
+            printf("CPF Invalido!\n");
           }
-        }else{
-          printf("CPF Invalido!");
-        }
-        break;
-      case 2:
-        printf("Digite o Id do cliente: ");
-        scanf("%ld", &cliente.id);
-        posicao = findClienteById(clientes, cliente.id);
-        if(posicao != -1){
-          lerRegistroEmArquivo(&cliente, clientes, posicao);
-          printf("\nId: %ld \nNome: %s \nTelefone: %s \nEmail : %s \nCPF: %s\n\n",
-            cliente.id, cliente.nome, cliente.telefone, cliente.email, cliente.cpf);
-        }else{
-          printf("ID não encontrado!");
-        }
-        break;
-      case 3:
-        break;
-    }
-    
-  }while ((opcao < 1 || opcao > 3) && opcao != 0);
+          break;
+        case 2:
+          printf("Digite o Id do cliente: ");
+          scanf("%ld", &id);
+          posicao = findClienteById(clientes, id);
+          break;
+        case 3:
+          printf("Digite o prefixo do nome do cliente: ");
+          setbuf(stdin, NULL);
+          fgets(prefixo, 100, stdin);
+          setbuf(stdin, NULL);
+          retiraEnter(prefixo);
+          padronizaString(prefixo);
+          vetor = findClientesByName(clientes, prefixo, &tamanho);
+          if(tamanho){
+            for (int i = 0; i < tamanho; i++) {
+              lerRegistroEmArquivo(&cliente, clientes, vetor[i], sizeof(Cliente));
+              printf("\nId: %ld \nNome: %s \nTelefone: %s \nEmail : %s \nCPF: %s\n\n",
+                    cliente.id, cliente.nome, cliente.telefone, cliente.email, cliente.cpf);
+            }
+          }
+          break;
+      }
+      if(posicao != -1 && opcao !=3){
+        lerRegistroEmArquivo(&cliente, clientes, posicao, sizeof(Cliente));
+        printf("\nId: %ld \nNome: %s \nTelefone: %s \nEmail : %s \nCPF: %s\n\n",
+          cliente.id, cliente.nome, cliente.telefone, cliente.email, cliente.cpf);
+      }
+    }while (opcao != 0);
+
+    fecharArquivo(clientes);
+  }else{
+    printf("\nNão foi possivel acessar a base de dados!\n");
+  }
   
 
 }
 
-void alterarCliente(){}
+void alterarCliente(){
+  FILE *clientes;
+  Cliente cliente;
+  unsigned long id;
+  int posicao, opcao;
+
+  clientes = abrirArquivo(CLIENTE);
+  if (clientes) {
+    limparTela();
+    printf("\nDigite o ID do cliente que deseja alterar: ");
+    scanf("%ld", &id);
+    posicao = findClienteById(clientes, id);
+    if(posicao != -1){
+      lerRegistroEmArquivo(&cliente, clientes, posicao, sizeof(Cliente));
+      printf("Deseja alterar o nome de %s? \n1 - Sim 2 - Não: ", cliente.nome);
+      scanf("%d", &opcao);
+      if(opcao == 1){
+        do {
+          printf("Digite o novo nome do cliente: ");
+          setbuf(stdin, NULL);
+          fgets(cliente.nome, 100, stdin);
+          setbuf(stdin, NULL);
+          padronizaString(cliente.nome);
+        }while (!campovazio(cliente.nome));
+      }
+    printf("Deseja alterar o CPF (%s)? \n1 - Sim 2 - Não: ", cliente.cpf);
+    scanf("%d", &opcao);
+    if(opcao == 1){
+      do {
+        printf("Digite o CPF do cliente: ");
+        setbuf(stdin, NULL);
+        fgets(cliente.cpf, 12, stdin);
+        setbuf(stdin, NULL);
+        if(!validaCPF(cliente.cpf)){
+          printf("CPF inválido!\n\n");
+        }
+      }while (!campovazio(cliente.cpf) || !validaCPF(cliente.cpf) ||
+            (findClienteByCPF(clientes, cliente.cpf) != -1));
+    }
+    
+    printf("Deseja alterar o email (%s)? \n1 - Sim 2 - Não: ", cliente.email);
+    scanf("%d", &opcao);
+    if(opcao == 1){
+      do {
+        printf("Digite o novo email do cliente: ");
+        setbuf(stdin, NULL);
+        fgets(cliente.email, 50, stdin);
+        setbuf(stdin, NULL);
+        if(!validaEmail(cliente.email)){
+          printf("Email inválido!\n\n");
+        }
+      }while (!campovazio(cliente.email) || !validaEmail(cliente.email));
+    }
+    
+    printf("Deseja alterar o telefone (%s)? \n1 - Sim 2 - Não: ", cliente.telefone);
+    scanf("%d", &opcao);
+    if(opcao == 1){
+      do {
+        printf("Digite o novo telefone (formato: (xx)xxxxx-xxxx ) do cliente: ");
+        setbuf(stdin, NULL);
+        setbuf(stdin, NULL);
+        fgets(cliente.telefone, 15, stdin);
+        setbuf(stdin, NULL);
+      }while (!campovazio(cliente.telefone));
+    }
+
+    printf("Novos dados do cliente: \nId: %ld \nNome: %s \nTelefone: %s \nEmail : %s \nCPF: %s\n\n",
+          cliente.id, cliente.nome, cliente.telefone, cliente.email, cliente.cpf);
+
+    gravarRegistroEmArquivo(&cliente, clientes, posicao, sizeof(Cliente));
+
+    }else{
+      printf("\nRegistro não encontrado!!!\n");
+    }
+    fecharArquivo(clientes);
+  }else{
+    printf("\nNão foi possivel acessar a base de dados!\n");
+  }
+}
 
 void listarClientes(){
   FILE *clientes;
@@ -191,12 +284,14 @@ void cadastrarVendedor(){
       do {
         printf("Digite o telefone (formato: (xx)xxxxx-xxxx ) do vendedor: ");
         setbuf(stdin, NULL);
+        setbuf(stdin, NULL);
         fgets(vendedor.telefone, 15, stdin);
         setbuf(stdin, NULL);
       }while (!campovazio(vendedor.telefone));
 
       do {
         printf("Digite a nova senha do vendedor: ");
+        setbuf(stdin, NULL);
         setbuf(stdin, NULL);
         fgets(vendedor.password, 20, stdin);
         setbuf(stdin, NULL);
@@ -217,21 +312,176 @@ void cadastrarVendedor(){
 
 }
 
-void alterarVendedor(){}
+void alterarVendedor(){
+  FILE *vendedores;
+  Vendedor vendedor;
+  unsigned long id;
+  int posicao, opcao;
 
-void consultarVendedor(){}
+  vendedores = abrirArquivo(VENDEDOR);
+  if (vendedores) {
+    limparTela();
+    printf("\nDigite o ID do vendedor que deseja alterar: ");
+    scanf("%ld", &id);
+    posicao = findVendedorById(vendedores, id);
+    printf("posicao: %ld", id);
+    if(posicao != -1){
+      lerRegistroEmArquivo(&vendedor, vendedores, posicao, sizeof(Vendedor));
+      printf("Deseja alterar o nome de %s? \n1 - Sim 2 - Não: ", vendedor.nome);
+      scanf("%d", &opcao);
+      if(opcao == 1){
+        do {
+          printf("Digite o novo nome do vendedor: ");
+          setbuf(stdin, NULL);
+          fgets(vendedor.nome, 100, stdin);
+          setbuf(stdin, NULL);
+          padronizaString(vendedor.nome);
+        }while (!campovazio(vendedor.nome));
+      }
+      printf("Deseja alterar o CPF (%s)? \n1 - Sim 2 - Não: ", vendedor.cpf);
+      scanf("%d", &opcao);
+      if(opcao == 1){
+        do {
+          printf("Digite o CPF do vendedor: ");
+          setbuf(stdin, NULL);
+          fgets(vendedor.cpf, 12, stdin);
+          setbuf(stdin, NULL);
+          if(!validaCPF(vendedor.cpf)){
+            printf("CPF inválido!\n\n");
+          }
+        }while (!campovazio(vendedor.cpf) || !validaCPF(vendedor.cpf) ||
+              (findVendedorByCPF(vendedores, vendedor.cpf) != -1));
+      }
+      
+      printf("Deseja alterar o email (%s)? \n1 - Sim 2 - Não: ", vendedor.email);
+      scanf("%d", &opcao);
+      if(opcao == 1){
+        do {
+          printf("Digite o novo email do vendedor: ");
+          setbuf(stdin, NULL);
+          fgets(vendedor.email, 50, stdin);
+          setbuf(stdin, NULL);
+          if(!validaEmail(vendedor.email)){
+            printf("Email inválido!\n\n");
+          }
+        }while (!campovazio(vendedor.email) || !validaEmail(vendedor.email));
+      }
+      
+      printf("Deseja alterar o telefone (%s)? \n1 - Sim 2 - Não: ", vendedor.telefone);
+      scanf("%d", &opcao);
+      if(opcao == 1){
+        do {
+          printf("Digite o novo telefone (formato: (xx)xxxxx-xxxx ) do vendedor: ");
+          setbuf(stdin, NULL);
+          setbuf(stdin, NULL);
+          fgets(vendedor.telefone, 15, stdin);
+          setbuf(stdin, NULL);
+        }while (!campovazio(vendedor.telefone));
+      }
+      printf("Deseja alterar a senha do vendedor? \n1 - Sim 2 - Não: ");
+      scanf("%d", &opcao);
+      if(opcao == 1){
+        do {
+          printf("Digite a nova senha do vendedor: ");
+          setbuf(stdin, NULL);
+          fgets(vendedor.password, 20, stdin);
+          setbuf(stdin, NULL);
+        }while (!campovazio(vendedor.password));
+      }
+      printf("Novos dados do vendedor: \nId: %ld \nNome: %s \nTelefone: %s \nEmail : %s \nCPF: %s\n\n",
+            vendedor.id, vendedor.nome, vendedor.telefone, vendedor.email, vendedor.cpf);
+
+      gravarRegistroEmArquivo(&vendedor, vendedores, posicao, sizeof(Vendedor));
+
+      fecharArquivo(vendedores);
+
+    }else{
+      printf("\nRegistro não encontrado!!!\n");
+    }
+  }else{
+    printf("\nNão foi possivel acessar a base de dados!\n");
+  }
+}
+
+void consultarVendedor(){
+  FILE *vendedores;
+  Vendedor vendedor;
+  int tamanho = 0, *vetor, posicao, opcao;
+  unsigned long id;
+  char cpf[12], prefixo[100];
+
+  vendedores = abrirArquivo(VENDEDOR);
+
+  if (vendedores) {
+    limparTela();
+    do {
+      printf("Escolha uma opção de acordo com o menu abaixo:\n");
+      printf("1 - Consulta por CPF\n");
+      printf("2 - Consulta por ID\n");
+      printf("3 - Consulta por prefixo do nome\n");
+      printf("0 - Sair\n");
+      scanf("%d", &opcao);
+
+      switch (opcao) {
+        case 1:
+          printf("Digite o CPF do vendedor: ");
+          setbuf(stdin, NULL);
+          fgets(cpf, 12, stdin);
+          setbuf(stdin, NULL);
+          if(validaCPF(cpf)){
+            posicao = findVendedorByCPF(vendedores, cpf);
+          }else{
+            printf("CPF Invalido!\n");
+          }
+          break;
+        case 2:
+          printf("Digite o Id do vendedor: ");
+          scanf("%ld", &id);
+          posicao = findVendedorById(vendedores, id);
+          break;
+        case 3:
+          printf("Digite o prefixo do nome do vendedor: ");
+          setbuf(stdin, NULL);
+          fgets(prefixo, 100, stdin);
+          setbuf(stdin, NULL);
+          retiraEnter(prefixo);
+          padronizaString(prefixo);
+          vetor = findVendedoresByName(vendedores, prefixo, &tamanho);
+          if(tamanho){
+            for (int i = 0; i < tamanho; i++) {
+              lerRegistroEmArquivo(&vendedor, vendedores, vetor[i], sizeof(Vendedor));
+              printf("\nId: %ld \nNome: %s \nTelefone: %s \nEmail : %s \nCPF: %s\n\n",
+                    vendedor.id, vendedor.nome, vendedor.telefone, vendedor.email, vendedor.cpf);
+            }
+          }
+          break;
+      }
+      if(posicao != -1 && opcao !=3){
+        lerRegistroEmArquivo(&vendedor, vendedores, posicao, sizeof(Vendedor));
+        printf("\nId: %ld \nNome: %s \nTelefone: %s \nEmail : %s \nCPF: %s\n\n",
+          vendedor.id, vendedor.nome, vendedor.telefone, vendedor.email, vendedor.cpf);
+      }
+    }while (opcao != 0);
+
+    fecharArquivo(vendedores);
+  }else{
+    printf("\nNão foi possivel acessar a base de dados!\n");
+  }
+  
+
+}
 
 void listarVendedores(){
   FILE *vendedores;
   Vendedor vendedor;
 
-  vendedores = abrirArquivo(CLIENTE);
+  vendedores = abrirArquivo(VENDEDOR);
 
   limparTela();
   printf("Listagem de vendedores: \n");
 
   fseek(vendedores, 0, SEEK_SET);
-  while (fread(&vendedor, sizeof(Cliente), 1, vendedores)) {
+  while (fread(&vendedor, sizeof(Vendedor), 1, vendedores)) {
     printf("\nId: %ld \nNome: %s \nTelefone: %s \nEmail : %s \nCPF: %s\n\n",
               vendedor.id, vendedor.nome, vendedor.telefone, vendedor.email, vendedor.cpf);
   }
@@ -256,6 +506,7 @@ void cadastrarFornecedor(){
         setbuf(stdin, NULL);
         fgets(fornecedor.nome, 100, stdin);
         setbuf(stdin, NULL);
+        retiraEnter(fornecedor.nome);
         padronizaString(fornecedor.nome);
         cadastrado = isNomeFornecedorCadastrado(fornecedores, fornecedor.nome);
         if(cadastrado){
@@ -303,6 +554,7 @@ void cadastrarFornecedor(){
       do {
         printf("Digite o telefone (formato: (xx)xxxxx-xxxx ) do fornecedor: ");
         setbuf(stdin, NULL);
+        setbuf(stdin, NULL);
         fgets(fornecedor.telefone, 15, stdin);
         setbuf(stdin, NULL);
       }while (!campovazio(fornecedor.telefone));
@@ -322,15 +574,154 @@ void cadastrarFornecedor(){
 
 }
 
-void alterarFornecedor(){}
+void alterarFornecedor(){
+  FILE *fornecedores;
+  Fornecedor fornecedor;
+  unsigned long id;
+  int posicao, opcao;
 
-void consultarFornecedor(){}
+  fornecedores = abrirArquivo(FORNECEDOR);
+  if (fornecedores) {
+    limparTela();
+    printf("\nDigite o ID do fornecedor que deseja alterar: ");
+    scanf("%ld", &id);
+    posicao = findFornecedorById(fornecedores, id);
+    if(posicao != -1){
+      lerRegistroEmArquivo(&fornecedor, fornecedores, posicao, sizeof(fornecedor));
+      printf("Deseja alterar o nome de %s? \n1 - Sim 2 - Não: ", fornecedor.nome);
+      scanf("%d", &opcao);
+      if(opcao == 1){
+        do {
+          printf("Digite o novo nome do fornecedor: ");
+          setbuf(stdin, NULL);
+          fgets(fornecedor.nome, 100, stdin);
+          setbuf(stdin, NULL);
+          retiraEnter(fornecedor.nome);
+          padronizaString(fornecedor.nome);
+        }while (!campovazio(fornecedor.nome) || 
+                isNomeFornecedorCadastrado(fornecedores, fornecedor.nome));
+      }
+    printf("Deseja alterar o CNPJ (%s)? \n1 - Sim 2 - Não: ", fornecedor.CNPJ);
+    scanf("%d", &opcao);
+    if(opcao == 1){
+      do {
+        printf("Digite o CNPJ do fornecedor: ");
+        setbuf(stdin, NULL);
+        fgets(fornecedor.CNPJ, 12, stdin);
+        setbuf(stdin, NULL);
+        if(!validaCNPJ(fornecedor.CNPJ)){
+          printf("CNPJ inválido!\n\n");
+        }
+      }while (!campovazio(fornecedor.CNPJ) || !validaCNPJ(fornecedor.CNPJ) ||
+            (findFornecedorByCNPJ(fornecedores, fornecedor.CNPJ) != -1));
+    }
+    
+    printf("Deseja alterar o email (%s)? \n1 - Sim 2 - Não: ", fornecedor.email);
+    scanf("%d", &opcao);
+    if(opcao == 1){
+      do {
+        printf("Digite o novo email do fornecedor: ");
+        setbuf(stdin, NULL);
+        fgets(fornecedor.email, 50, stdin);
+        setbuf(stdin, NULL);
+        if(!validaEmail(fornecedor.email)){
+          printf("Email inválido!\n\n");
+        }
+      }while (!campovazio(fornecedor.email) || !validaEmail(fornecedor.email));
+    }
+    
+    printf("Deseja alterar o telefone (%s)? \n1 - Sim 2 - Não: ", fornecedor.telefone);
+    scanf("%d", &opcao);
+    if(opcao == 1){
+      do {
+        printf("Digite o novo telefone (formato: (xx)xxxxx-xxxx ) do fornecedor: ");
+        setbuf(stdin, NULL);
+        setbuf(stdin, NULL);
+        fgets(fornecedor.telefone, 15, stdin);
+        setbuf(stdin, NULL);
+      }while (!campovazio(fornecedor.telefone));
+    }
+
+    printf("Novos dados do fornecedor: \nId: %ld \nNome: %s \nTelefone: %s \nEmail : %s \nCPF: %s\n\n",
+          fornecedor.id, fornecedor.nome, fornecedor.telefone, fornecedor.email, fornecedor.CNPJ);
+
+    gravarRegistroEmArquivo(&fornecedor, fornecedores, posicao, sizeof(Fornecedor));
+
+    }else{
+      printf("\nRegistro não encontrado!!!\n");
+    }
+    fecharArquivo(fornecedores);
+  }else{
+    printf("\nNão foi possivel acessar a base de dados!\n");
+  }
+}
+
+void consultarFornecedor(){
+  FILE *fornecedores;
+  Fornecedor fornecedor;
+  int tamanho = 0, *vetor, posicao, opcao;
+  unsigned long id;
+  char cnpj[15], prefixo[100];
+
+  fornecedores = abrirArquivo(FORNECEDOR);
+
+  if (fornecedores) {
+    limparTela();
+    do {
+      printf("Escolha uma opção de acordo com o menu abaixo:\n");
+      printf("1 - Consulta por CNPJ\n");
+      printf("2 - Consulta por ID\n");
+      printf("3 - Consulta por prefixo do nome\n");
+      printf("0 - Sair\n");
+      scanf("%d", &opcao);
+
+      switch (opcao) {
+        case 1:
+          printf("Digite o CNPJ do fornecedor: ");
+          setbuf(stdin, NULL);
+          fgets(cnpj, 15, stdin);
+          setbuf(stdin, NULL);
+          if(validaCNPJ(cnpj)){
+            posicao = findFornecedorByCNPJ(fornecedores, cnpj);
+          }else{
+            printf("CNPJ Invalido!\n");
+          }
+          break;
+        case 2:
+          printf("Digite o Id do fornecedor: ");
+          scanf("%ld", &id);
+          posicao = findFornecedorById(fornecedores, id);
+          break;
+        case 3:
+          printf("Digite o prefixo do nome do fornecedor: ");
+          setbuf(stdin, NULL);
+          fgets(prefixo, 100, stdin);
+          setbuf(stdin, NULL);
+          retiraEnter(prefixo);
+          padronizaString(prefixo);
+          posicao = findFornecedorByName(fornecedores, prefixo);
+          break;
+      }
+      if(posicao != -1){
+        lerRegistroEmArquivo(&fornecedor, fornecedores, posicao, sizeof(Fornecedor));
+        printf("\nId: %ld \nNome: %s \nTelefone: %s \nEmail : %s \nCNPJ: %s\n\n",
+          fornecedor.id, fornecedor.nome, fornecedor.telefone, fornecedor.email, fornecedor.CNPJ);
+      }
+    }while (opcao != 0);
+
+    fecharArquivo(fornecedores);
+  }else{
+    printf("\nNão foi possivel acessar a base de dados!\n");
+  }
+  
+
+}
 
 void listarFornecedores(){
   FILE *fornecedores;
   Fornecedor fornecedor;
 
-  fornecedores = abrirArquivo(CLIENTE);
+  fornecedores = abrirArquivo(FORNECEDOR);
 
   limparTela();
   printf("Listagem de fornecedores: \n");

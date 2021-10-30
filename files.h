@@ -13,7 +13,7 @@ int fecharArquivo(FILE *file);
 
 int gravarRegistroFinalArquivo(void *data, FILE *file, unsigned long size);
 int gravarRegistroEmArquivo(void *data, FILE *file, int posicao,unsigned long size);
-void lerRegistroEmArquivo(void *data, FILE *file, int position);
+void lerRegistroEmArquivo(void *data, FILE *file, int position, unsigned int size);
 
 unsigned long getNewUniqueId(FILE *file, unsigned long sizeOfRegister);
 
@@ -28,7 +28,7 @@ int isEmailCadastradoVendedor(FILE *file, char *email);
 
 int findFornecedorById(FILE *file, unsigned long id);
 int findFornecedorByCNPJ(FILE *file, char *cnpj);
-int *findFornecedoresByName(FILE *file, char *name, int *tamanho);
+int findFornecedorByName(FILE *file, char *name);
 int isNomeFornecedorCadastrado(FILE *file, char * nome);
 
 int findNotaFiscalById(FILE *file, unsigned long id);
