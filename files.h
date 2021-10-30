@@ -7,6 +7,11 @@
 #define CLIENTE "data/Clientes.dat"
 #define VENDEDOR "data/Vendedores.dat"
 #define FORNECEDOR "data/Fornecedores.dat"
+#define PRODUTO "data/Produtos.dat"
+#define NOTA_FISCAL "data/NotasFiscais.dat"
+#define ITEM_NOTA_FISCAL "data/ItensNotaFiscal.dat"
+#define NOTA_COMPRA "data/NotasCompra.dat"
+#define ITEM_NOTA_COMPRA "data/NotasFiscais.dat"
 
 FILE *abrirArquivo(char location[]);
 int fecharArquivo(FILE *file);

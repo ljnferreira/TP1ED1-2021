@@ -736,3 +736,36 @@ void listarFornecedores(){
 
   pause();
 }
+
+void cadastrarProduto(){
+  FILE *produtos;
+  Produto produto;
+  int opcao;
+
+  produtos  = abrirArquivo(PRODUTO);
+  if(produtos){
+    do {
+      produto.id = getNewUniqueId(produtos, sizeof(Produto));
+      produto.quantidadeEstoque = 0;
+      do {
+        printf("Digite o nome do produto: ");
+        setbuf(stdin, NULL);
+        fgets(produto.nome, 100, stdin);
+        setbuf(stdin, NULL);
+        padronizaString(produto.nome);
+      }while (!campovazio(produto.nome));
+
+      do{
+        printf("Digite o preço unitario do produto: ");
+        scanf("%f", &produto.precoUnitario);
+      }while(produto.precoUnitario <= 0);
+
+      gravarRegistroFinalArquivo(&produto, produtos, sizeof(Produto));
+
+      printf("Deseja Sair? \n1 - Sim 2 - Não: ");
+      scanf("%d", &opcao);
+    }while (opcao != 1);
+
+    fecharArquivo(produtos);
+  }
+}

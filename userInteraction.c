@@ -129,6 +129,7 @@ void menuPrincipal(){
           crudFornecedor();
           break;
         case 4:
+          cadastrarProduto();
           break;
         case 5:
           break;
