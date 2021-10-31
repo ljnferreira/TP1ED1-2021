@@ -132,8 +132,10 @@ void menuPrincipal(){
           cadastrarProduto();
           break;
         case 5:
+          efetuarVenda();
           break;
         case 6:
+          efetuarCompra();
           break;
         case 7:
           atualizarPreco();

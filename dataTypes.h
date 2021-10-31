@@ -70,4 +70,10 @@ typedef struct{
   float valor;
 }HistoricoPreco;
 
+typedef struct{
+  unsigned long idProduto;
+  int quantidade;
+  float valorUnitario;
+}ItemCarrinho;
+
 #endif

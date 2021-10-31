@@ -13,4 +13,6 @@ int campovazio(char *nome);
 
 void padronizaString(char *texto);
 
+void getSystemDate(char date[11]);
+
 #endif

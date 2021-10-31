@@ -238,6 +238,19 @@ int isNomeFornecedorCadastrado(FILE *file, char * nome){
   return 0;
 }
 
+int findProdutoById(FILE *file, unsigned long id){
+  Produto produto;
+  int contador = 0, posicao = -1;
+  fseek(file, 0, SEEK_SET);
+  while(fread(&produto, sizeof(Produto), 1, file)){
+    if(produto.id == id){
+      posicao = contador;
+      return posicao;
+    }
+  }
+  return posicao;
+}
+
 int findNotaFiscalById(FILE *file, unsigned long id){
   NotaFiscal notaFiscal;
   int tamanho, posicao = -1;

@@ -11,7 +11,7 @@
 #define NOTA_FISCAL "data/NotasFiscais.dat"
 #define ITEM_NOTA_FISCAL "data/ItensNotaFiscal.dat"
 #define NOTA_COMPRA "data/NotasCompra.dat"
-#define ITEM_NOTA_COMPRA "data/NotasFiscais.dat"
+#define ITEM_NOTA_COMPRA "data/ItensNotaCompra.dat"
 #define HISTORICO_PRECOS "data/HistoricoPrecos.dat"
  
 
@@ -38,6 +38,7 @@ int findFornecedorByCNPJ(FILE *file, char *cnpj);
 int findFornecedorByName(FILE *file, char *name);
 int isNomeFornecedorCadastrado(FILE *file, char * nome);
 
+int findProdutoById(FILE *file, unsigned long id);
 int findNotaFiscalById(FILE *file, unsigned long id);
 int findNotaCompraById(FILE *file, unsigned long id);
 int findItemNotaCompraById(FILE *file, unsigned long id);

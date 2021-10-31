@@ -1,8 +1,10 @@
+#include <bits/types/FILE.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "crud.h"
 #include "dataTypes.h"
+#include "memoryManagement.h"
 #include "userInteraction.h"
 #include "utils.h"
 #include "files.h"
@@ -771,6 +773,18 @@ void cadastrarProduto(){
   }
 }
 
+void listarProdutos(){
+  Produto produto;
+  FILE *produtos;
+
+  produtos = abrirArquivo(PRODUTO);
+  printf("\t|\t Id \t|\t Nome \t|\n");
+  while (fread(&produto, sizeof(Produto), 1, produtos)) {
+    printf("\t|\t %ld \t|\t %s \t|\n", produto.id, produto.nome);
+  }
+  fecharArquivo(produtos);
+}
+
 void atualizarPreco(){
   FILE *historicoPrecos;
   FILE *produtos;
@@ -809,7 +823,7 @@ void atualizarPreco(){
         if(produto.id == id){
           produto.precoUnitario = produto.precoUnitario * porcentagem;
           historicoPreco.idProduto = produto.id;
-          strcpy(historicoPreco.data , __DATE__);
+          getSystemDate(historicoPreco.data);
           historicoPreco.valor = produto.precoUnitario;
           gravarRegistroFinalArquivo(&historicoPreco, historicoPrecos, sizeof(HistoricoPreco));
           gravarRegistroEmArquivo(&produto, produtos, contador, sizeof(Produto));
@@ -822,7 +836,7 @@ void atualizarPreco(){
       while(fread(&produto, sizeof(Produto), 1, produtos)){
         produto.precoUnitario = produto.precoUnitario * porcentagem; 
         historicoPreco.idProduto = produto.id;
-        strcpy(historicoPreco.data , __DATE__);
+        getSystemDate(historicoPreco.data);
         historicoPreco.valor = produto.precoUnitario;
         gravarRegistroFinalArquivo(&historicoPreco, historicoPrecos, sizeof(HistoricoPreco));
         gravarRegistroEmArquivo(&produto, produtos, contador, sizeof(Produto)); 
@@ -840,4 +854,192 @@ void atualizarPreco(){
     fecharArquivo(produtos);
     fecharArquivo(historicoPrecos);
   }
+}
+
+
+void efetuarCompra(){
+  FILE *produtos, *fornecedores, *notasCompra, *itensNotaCompra;
+  Produto produto;
+  Fornecedor fornecedor;
+  NotaCompra notaCompra;
+  ItemNotaCompra itemNotaCompra;
+  ItemCarrinho *carrinho, item;
+
+  produtos = abrirArquivo(PRODUTO); 
+  fornecedores = abrirArquivo(FORNECEDOR); 
+  notasCompra = abrirArquivo(NOTA_COMPRA);
+
+  int tamanho = 1, contador = 0, opcao, quantidade, posicao;
+  unsigned long id;
+  float totalNota = 0;
+  carrinho = alocaCarrinho(tamanho);
+  
+  do {
+    printf("Para efetuar uma compra escolha o fornecedor de acordo com a tabela abaixo:");
+    listarFornecedores();
+    printf("Digite o id do fornecedor: ");
+    scanf("%ld", &id);
+  }while (findFornecedorById(fornecedores, id) == -1);
+
+  notaCompra.idFornecedor = id;
+  notaCompra.id = getNewUniqueId(notasCompra, sizeof(NotaCompra));
+
+  getSystemDate(notaCompra.dataCompra);
+
+  do{
+    do {
+      limparTela();
+      listarProdutos();
+      printf("Digite o Id do produto que deseja adicionar: ");
+      scanf("%ld", &id);
+    }while (findProdutoById(produtos, id) == -1);
+
+    do{
+      printf("Digite a quantidade (deve ser um valor maior que zero) do produto: ");
+      scanf("%d", &quantidade);
+    }while(quantidade <= 0);
+
+    do{
+      printf("Digite o valor unitario do produto: ");
+      scanf("%f", &item.valorUnitario);
+    }while(item.valorUnitario <= 0);
+
+    item.quantidade = quantidade;
+    item.idProduto = id;
+    
+    if(contador == tamanho){
+      carrinho = aumentaCarrinho(carrinho, &tamanho);
+    }
+
+    carrinho[contador] = item;
+    contador++;
+
+    printf("Deseja comprar mais um produto? \n1 - Sim 2 - Não");
+    scanf("%d", &opcao);
+    
+  }while(opcao ==1);
+
+  for(int i = 0; i < contador; i++){
+    itensNotaCompra = abrirArquivo(ITEM_NOTA_COMPRA);
+    
+    itemNotaCompra.idNotaCompra = notaCompra.id;
+    itemNotaCompra.id = getNewUniqueId(itensNotaCompra, sizeof(ItemNotaCompra));
+    itemNotaCompra.quantidade = carrinho[i].quantidade;
+    itemNotaCompra.idProduto = carrinho[i].idProduto;
+    itemNotaCompra.valorUnitario = carrinho[i].valorUnitario;
+    totalNota += itemNotaCompra.valorUnitario * itemNotaCompra.quantidade;
+
+    gravarRegistroFinalArquivo(&itemNotaCompra, itensNotaCompra, sizeof(ItemNotaCompra));
+
+    posicao = findProdutoById(produtos, item.idProduto);
+    lerRegistroEmArquivo(&produto, produtos, posicao, sizeof(Produto));
+    produto.quantidadeEstoque += carrinho[i].quantidade;
+    gravarRegistroEmArquivo(&produto, produtos, posicao, sizeof(Produto));
+
+    fecharArquivo(itensNotaCompra);
+  }
+
+  notaCompra.valorTotal = totalNota;
+  gravarRegistroFinalArquivo(&notaCompra, notasCompra, sizeof(NotaCompra));
+  
+  fecharArquivo(produtos);
+  fecharArquivo(fornecedores);
+  fecharArquivo(notasCompra);
+  
+}
+
+void efetuarVenda(){
+  FILE *produtos, *clientes, *notasFiscais, *itensNotaFiscal;
+  Produto produto;
+  Cliente cliente;
+  NotaFiscal notaFiscal;
+  ItemNotaFiscal itemNotaFiscal;
+  ItemCarrinho *carrinho, item;
+
+  produtos = abrirArquivo(PRODUTO); 
+  clientes = abrirArquivo(CLIENTE); 
+  notasFiscais = abrirArquivo(NOTA_FISCAL);
+
+  int tamanho = 1, contador = 0, opcao, quantidade, posicao;
+  unsigned long id;
+  float totalNota = 0;
+  carrinho = alocaCarrinho(tamanho);
+  
+  do {
+    printf("Para efetuar uma venda escolha o Cliente de acordo com a tabela abaixo:");
+    listarClientes();
+    printf("Digite o id do cliente: ");
+    scanf("%ld", &id);
+  }while (findClienteById(clientes, id) == -1);
+
+  notaFiscal.idCliente = id;
+  notaFiscal.id = getNewUniqueId(notasFiscais, sizeof(NotaFiscal));
+
+  getSystemDate(notaFiscal.dataCompra);
+
+  do{
+    do {
+      limparTela();
+      listarProdutos();
+      printf("Digite o Id do produto que deseja adicionar: ");
+      scanf("%ld", &id);
+    }while (findProdutoById(produtos, id) == -1);
+
+    posicao = findProdutoById(produtos, id);
+    lerRegistroEmArquivo(&produto, produtos, posicao, sizeof(Produto));
+
+    do{
+      printf("Digite a quantidade (max: %d) do produto: ", produto.quantidadeEstoque);
+      scanf("%d", &quantidade);
+    }while(quantidade <= 0 || quantidade > produto.quantidadeEstoque);
+
+    item.quantidade = quantidade;
+    item.idProduto = id;
+    
+    if(contador == tamanho){
+      carrinho = aumentaCarrinho(carrinho, &tamanho);
+    }
+
+    carrinho[contador] = item;
+    contador++;
+
+    printf("Deseja comprar mais um produto? \n1 - Sim 2 - Não ");
+    scanf("%d", &opcao);
+    
+  }while(opcao ==1);
+
+  for(int i = 0; i < contador; i++){
+    itensNotaFiscal = abrirArquivo(ITEM_NOTA_FISCAL);
+    
+    posicao = findProdutoById(produtos, item.idProduto);
+    lerRegistroEmArquivo(&produto, produtos, posicao, sizeof(Produto));
+    produto.quantidadeEstoque -= carrinho[i].quantidade;
+    gravarRegistroEmArquivo(&produto, produtos, posicao, sizeof(Produto));
+
+    carrinho[i].valorUnitario = produto.precoUnitario;
+
+    itemNotaFiscal.idNotaFiscal = notaFiscal.id;
+    itemNotaFiscal.id = getNewUniqueId(itensNotaFiscal, sizeof(ItemNotaFiscal));
+    itemNotaFiscal.quantidade = carrinho[i].quantidade;
+    itemNotaFiscal.idProduto = carrinho[i].idProduto;
+    itemNotaFiscal.valorVenda = carrinho[i].valorUnitario;
+    totalNota += itemNotaFiscal.valorVenda * itemNotaFiscal.quantidade;
+
+    gravarRegistroFinalArquivo(&itemNotaFiscal, itensNotaFiscal, sizeof(itemNotaFiscal));
+
+    fecharArquivo(itensNotaFiscal);
+  }
+
+  notaFiscal.valorTotal = totalNota;
+  
+  gravarRegistroFinalArquivo(&notaFiscal, notasFiscais, sizeof(notaFiscal));
+  
+  fecharArquivo(produtos);
+  fecharArquivo(clientes);
+  fecharArquivo(notasFiscais);
+
+  printf("Valor total da compra: %.2f", totalNota);
+
+  pause();
+  
 }

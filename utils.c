@@ -1,6 +1,8 @@
 #include <stdio.h>
+#include <locale.h>
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
 #include "utils.h"
 
 //Funções de validação 
@@ -270,4 +272,25 @@ void padronizaString(char *texto){
     
   }
   
+}
+
+void getSystemDate(char date[11]){
+  strcpy(date, "xx/xx/xxxx");
+  time_t actualTime = time(NULL);
+  struct tm localtimer = *localtime(&actualTime);
+  int dia, mes, ano;
+  dia = localtimer.tm_mday;
+  mes = localtimer.tm_mon + 1;
+  ano = localtimer.tm_year + 1900;
+
+  date[0] = dia/10 + 48;
+  date[1] = dia%10 + 48;
+
+  date[3] = mes/10 + 48;
+  date[4] = mes%10 + 48;
+
+  date[6] = ano/1000 + 48;
+  date[7] = ano%1000/100 + 48;
+  date[8] = ano%1000%100/10 + 48;
+  date[9] = ano%1000%100%10 + 48;
 }

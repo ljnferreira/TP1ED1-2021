@@ -66,5 +66,9 @@ void consultarProduto();
 
 void atualizarPreco();
 
+void efetuarCompra();
+
+void efetuarVenda();
+
 
 #endif 
